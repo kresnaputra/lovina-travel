@@ -2,10 +2,14 @@
 import '../styles/global.css';
 import { business } from '../data/business';
 import { ArrowUp, MessageCircle } from 'lucide-astro';
+import LanguageSwitcher from '../components/LanguageSwitcher.astro';
+import { languagePair } from '../data/locales';
 interface Props { title?: string; description?: string; image?: string; imageAlt?: string; article?: boolean; }
 const { title = 'Utami Mesari Tours — Dolphin Tours & Transport', description = 'Dolphin tours and private transport with Bu Ayu in Lovina, North Bali. Serving Singaraja, Negara, Denpasar, and airport transfers. Indonesian and English spoken.' } = Astro.props;
 const { whatsappUrl } = business;
 const site = Astro.site!;
+const pair = languagePair(Astro.url.pathname);
+const lang = pair?.isIndonesian ? 'id' : 'en';
 const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', site);
 const { image = '/images/lovina-dolphins-hero.webp', imageAlt = 'Dolphins at sunrise in Lovina, North Bali', article = false } = Astro.props;
 const socialImage = new URL(image, site);
@@ -13,20 +17,22 @@ const structuredData = {
   '@context': 'https://schema.org',
   '@graph': [
     { '@type': 'TravelAgency', '@id': new URL('/#business', site).href, name: 'Utami Mesari Tours', url: site.href, telephone: business.phone, image: new URL('/images/lovina-dolphins-hero.webp', site).href, sameAs: [business.instagramUrl], areaServed: ['Lovina', 'Singaraja', 'Negara', 'Denpasar'], contactPoint: { '@type': 'ContactPoint', telephone: business.phone, contactType: 'reservations', availableLanguage: ['English', 'Indonesian'] } },
-    { '@type': 'WebSite', '@id': new URL('/#website', site).href, url: site.href, name: 'Utami Mesari Tours', inLanguage: 'en', publisher: { '@id': new URL('/#business', site).href } },
+    { '@type': 'WebSite', '@id': new URL('/#website', site).href, url: site.href, name: 'Utami Mesari Tours', inLanguage: ['en', 'id'], publisher: { '@id': new URL('/#business', site).href } },
   ],
 };
 ---
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {pair && <><link rel="alternate" hreflang="en" href={new URL(pair.en.replace(/\/$/, '') || '/', site)} /><link rel="alternate" hreflang="id" href={new URL(pair.id.replace(/\/$/, ''), site)} /><link rel="alternate" hreflang="x-default" href={new URL(pair.en.replace(/\/$/, '') || '/', site)} /></>}
     <meta property="og:type" content={article ? 'article' : 'website'} />
     <meta property="og:site_name" content="Utami Mesari Tours" />
-    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale" content={lang === 'id' ? 'id_ID' : 'en_US'} />
+    <meta property="og:locale:alternate" content={lang === 'id' ? 'en_US' : 'id_ID'} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
@@ -47,12 +53,13 @@ const structuredData = {
     <title>{title}</title>
   </head>
   <body>
+    <LanguageSwitcher />
     <slot />
-    <nav class="floating-dock" aria-label="Quick actions">
-      <a class="floating-action whatsapp-action" href={whatsappUrl} target="_blank" rel="noreferrer" aria-label="Chat with Utami Mesari Tours on WhatsApp" data-label="WhatsApp">
+    <nav class="floating-dock" aria-label={lang === 'id' ? 'Akses cepat' : 'Quick actions'}>
+      <a class="floating-action whatsapp-action" href={whatsappUrl} target="_blank" rel="noreferrer" aria-label={lang === 'id' ? 'Hubungi Utami Mesari Tours melalui WhatsApp' : 'Chat with Utami Mesari Tours on WhatsApp'} data-label="WhatsApp">
         <MessageCircle size={19} stroke-width={1.8} />
       </a>
-      <button class="floating-action scroll-top-action" type="button" aria-label="Scroll to the top" data-label="Back to top">
+      <button class="floating-action scroll-top-action" type="button" aria-label={lang === 'id' ? 'Kembali ke atas' : 'Scroll to the top'} data-label={lang === 'id' ? 'Ke atas' : 'Back to top'}>
         <ArrowUp size={19} stroke-width={1.8} />
       </button>
     </nav>
